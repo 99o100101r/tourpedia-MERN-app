@@ -1,19 +1,32 @@
 import React, { useEffect } from "react";
 import { MDBCol, MDBContainer, MDBRow, MDBTypography } from "mdb-react-ui-kit";
 import { useDispatch, useSelector } from "react-redux";
-import { getTours } from "../redux/features/tourSlice";
+import { getTours, setCurrentPage } from "../redux/features/tourSlice";
 import CardTour from "../components/CardTour";
+import Spinner from "../components/Spinner";
+import Pagination from "../components/Pagination";
+import { useLocation } from "react-router-dom";
+
+function useQuery() {
+  return new URLSearchParams(useLocation().search);
+}
 
 const Home = () => {
   const dispatch = useDispatch();
-  const { tours, loading } = useSelector((state) => ({ ...state.tour }));
+  const { tours, loading, currentPage, noOfPages } = useSelector((state) => ({
+    ...state.tour,
+  }));
+
+  const query = useQuery();
+  const searchQuery = query.get("searchQuery");
+  const location = useLocation();
 
   useEffect(() => {
-    dispatch(getTours());
-  }, []);
+    dispatch(getTours(currentPage));
+  }, [currentPage]);
 
   if (loading) {
-    return <h3>loading...</h3>;
+    return <Spinner />;
   }
   return (
     <div
@@ -39,6 +52,14 @@ const Home = () => {
           </MDBContainer>
         </MDBCol>
       </MDBRow>
+      {tours.length > 0 && !searchQuery && (
+        <Pagination
+          setCurrentPage={setCurrentPage}
+          noOfPages={noOfPages}
+          currentPage={currentPage}
+          dispatch={dispatch}
+        />
+      )}
     </div>
   );
 };
